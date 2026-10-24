@@ -91,6 +91,8 @@ target:
     - pkg: dev-libs/sord
     - pkg: dev-libs/zix
 
+    - pkg: dev-ml/facile
+
     - pkg: dev-util/bindgen
     - pkg: dev-util/cargo-c
     - pkg: dev-util/cbindgen

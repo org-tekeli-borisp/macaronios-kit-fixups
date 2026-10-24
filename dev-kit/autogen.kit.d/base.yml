@@ -1548,6 +1548,56 @@ dev_github:
               fi
             }
 
+    - facile:
+        # OCaml constraint solver library required by kde-apps/kalzium[solver],
+        # macaroni-os/mark-issues#790. GATED: upstream 1.1.4 builds with dune
+        # only (jbuild/opam layout), so this needs dev-lang/ocaml AND dev-ml/dune
+        # to land in an active kit first; neither exists today (only the stale
+        # ml-lang-kit repo has ocaml 4.04/4.05). Do not merge before that.
+        template: ../../templates/simple-github.tmpl
+        category: dev-ml
+        github:
+          user: Emmanuel-PLF
+          query: releases
+        vars:
+          desc: OCaml constraint programming library on integer and integer set finite domains
+          homepage: "http://opti.recherche.enac.fr/ https://github.com/Emmanuel-PLF/facile"
+          license: LGPL-2.1
+          slot: '0/${PV}'
+          iuse: +ocamlopt
+          patches:
+            - facile-1.1.4-dune.patch
+          docs:
+            - README.md
+          bdepend: |
+            dev-lang/ocaml:=[ocamlopt?]
+            dev-ml/dune
+          rdepend: |
+            dev-lang/ocaml:=[ocamlopt?]
+          body: |
+            src_prepare() {
+              default
+              # ocaml >= 4.07 dropped the Pervasives module (renamed to Stdlib)
+              sed -i -e 's:Pervasives:Stdlib:g' \
+                lib/fcl_misc.ml lib/fcl_cstr.ml lib/fcl_fdArray.ml \
+                lib/fcl_nonlinear.ml lib/fcl_sorting.ml || die
+            }
+
+            src_compile() {
+              local xdg="${T}/xdg"
+              mkdir -p "${xdg}" || die
+              XDG_RUNTIME_DIR="${xdg}" dune build -p "${PN}" @install || die
+            }
+
+            src_install() {
+              local xdg="${T}/xdg"
+              mkdir -p "${xdg}" || die
+              XDG_RUNTIME_DIR="${xdg}" dune install -p "${PN}" \
+                --destdir="${ED}" --prefix=/usr \
+                --libdir "$(ocamlc -where)" facile || die
+              dodoc README.md CHANGES.md
+            }
+
 gnu_savannah_atoms:
   # Using GARR mirror more fast.
   generator: builtin-dirlisting
